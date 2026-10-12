@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "small-model-alignment"
+version = "0.1.0"
+description = "Custom SFT and from-scratch DPO on Qwen2.5-0.5B, plus a TRL/LoRA persona track and pairwise evaluation."
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.setuptools]
+packages = ["alignment"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

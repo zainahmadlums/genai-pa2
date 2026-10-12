@@ -1,0 +1,36 @@
+# From-scratch DPO on Anthropic HH-RLHF single-turn pairs. Guide values: manual section 10.4.
+run_name: dpo_hh
+sft_checkpoint: outputs/sft/best      # initial policy AND frozen reference
+train_file: outputs/data/hh_train.jsonl
+val_file: outputs/data/hh_val.jsonl
+output_dir: outputs/dpo_hh
+
+# template is inherited from the SFT checkpoint (alignment_meta.json)
+beta: 0.1
+max_length: 512
+max_prompt_length: 256
+
+train_size: 15000
+val_size: 1000
+epochs: 1
+batch_size: 1               # one preference pair per step
+grad_accum_steps: 32        # effective batch size 32
+learning_rate: 1.0e-6       # fixed
+schedule: constant
+warmup_ratio: 0.0
+weight_decay: 0.0
+max_grad_norm: 1.0
+optimizer: adamw            # or rmsprop
+precision: fp16             # fp16 autocast, fp32 policy weights, GradScaler
+reference_dtype: fp32       # fp32 weights under the same autocast as the policy; "fp16" halves reference memory
+policy_device: cuda:0
+reference_device: cuda:1    # falls back to the policy device when only one GPU exists
+single_forward: true        # chosen and rejected rows share one forward pass
+seed: 42
+
+eval_at_start: true         # logs the tied initial state (reward accuracy 0 by the strict > rule)
+eval_every_steps: 100       # optimizer steps (469 in total for 15k pairs)
+eval_batch_size: 4
+log_every_steps: 10
+resume_every_steps: 0       # mid-run resume state (about 6 GB per save) is off by default. On Kaggle enable it with
+                            #   --override resume_every_steps=100 resume_dir=/kaggle/temp/resume/dpo_hh

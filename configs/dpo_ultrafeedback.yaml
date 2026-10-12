@@ -1,0 +1,35 @@
+# From-scratch DPO on UltraFeedback single-turn pairs. Same code and recipe as configs/dpo_hh.yaml.
+run_name: dpo_ultrafeedback
+sft_checkpoint: outputs/sft/best      # initial policy AND frozen reference
+train_file: outputs/data/uf_train.jsonl
+val_file: outputs/data/uf_val.jsonl
+output_dir: outputs/dpo_ultrafeedback
+
+# template is inherited from the SFT checkpoint (alignment_meta.json)
+beta: 0.1
+max_length: 512
+max_prompt_length: 256
+
+train_size: 15000
+val_size: 1000
+epochs: 1
+batch_size: 1
+grad_accum_steps: 32
+learning_rate: 1.0e-6
+schedule: constant
+warmup_ratio: 0.0
+weight_decay: 0.0
+max_grad_norm: 1.0
+optimizer: adamw
+precision: fp16
+reference_dtype: fp32
+policy_device: cuda:0
+reference_device: cuda:1
+single_forward: true
+seed: 42
+
+eval_at_start: true
+eval_every_steps: 100
+eval_batch_size: 4
+log_every_steps: 10
+resume_every_steps: 0       # see configs/dpo_hh.yaml; enable with resume_dir=/kaggle/temp/resume/dpo_ultrafeedback
