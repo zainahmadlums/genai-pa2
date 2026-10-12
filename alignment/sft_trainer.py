@@ -19,7 +19,7 @@ class SFTTaskConfig:
     max_prompt_length: int | None = None
     template: str = DEFAULT_TEMPLATE
     reduction: str = SFT_REDUCTION
-    eval_batch_size: int = 8
+    eval_batch_size: int = 2
 
 
 class SFTTask:

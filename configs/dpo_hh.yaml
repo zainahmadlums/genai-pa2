@@ -30,7 +30,9 @@ seed: 42
 
 eval_at_start: true         # logs the tied initial state (reward accuracy 0 by the strict > rule)
 eval_every_steps: 100       # optimizer steps (469 in total for 15k pairs)
-eval_batch_size: 4
+eval_batch_size: 1          # pairs per validation batch (2 rows in one forward pass); same as batch_size, so a
+                            # validation batch never needs more GPU memory than a training step. The validation
+                            # metrics do not depend on this value.
 log_every_steps: 10
 resume_every_steps: 0       # mid-run resume state (about 6 GB per save) is off by default. On Kaggle enable it with
                             #   --override resume_every_steps=100 resume_dir=/kaggle/temp/resume/dpo_hh

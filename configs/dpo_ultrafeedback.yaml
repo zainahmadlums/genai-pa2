@@ -30,6 +30,6 @@ seed: 42
 
 eval_at_start: true
 eval_every_steps: 100
-eval_batch_size: 4
+eval_batch_size: 1          # see configs/dpo_hh.yaml
 log_every_steps: 10
 resume_every_steps: 0       # see configs/dpo_hh.yaml; enable with resume_dir=/kaggle/temp/resume/dpo_ultrafeedback

@@ -12,8 +12,10 @@ edited and there are no manual test or smoke steps.
 Budget about 6.5 to 8.5 GPU hours for notebook 01, 0.5 to 1 hour for notebook 02, and 0.5 to 1 hour (no GPU) for
 notebook 03.
 
-**Nothing here has been run on Kaggle yet.** The notebooks were checked offline only (see section 5). Treat the
-first run of each notebook as the test: send its status and log before starting the next one.
+**Only the beginning of notebook 01 has been run on Kaggle** (setup, tests, data preparation and the first 100 SFT
+optimizer steps; see "First Kaggle run" in section 1). Everything after that point, and notebooks 02 and 03, were
+checked offline only (see section 5). Treat the first run of each notebook as the test: send its status and log
+before starting the next one.
 
 ## The same five steps for every notebook
 
@@ -98,6 +100,25 @@ python scripts/summarize_results.py --runs <run dirs> --out_dir outputs/report
   error.
 - `RUN_SMOKE = True` adds a 4-step smoke run (`--smoke`, checkpoints removed afterwards) before each full run. It
   is off by default and not needed.
+
+**First Kaggle run: out of memory at the first periodic SFT evaluation (fixed in the code).** On T4 x2 the
+setup, the tests, data preparation, the SFT evaluation at step 0 and SFT steps 1 to 100 ran; the evaluation at
+step 100 then failed with `CUDA out of memory` on GPU 0 inside `SFTTask.evaluate`.
+
+- Cause: the step-0 evaluation runs with only the weights on the GPU. From the first update on, the GPU also
+  holds AdamW's two moment tensors per weight and, until this fix, the gradients of the step that had just
+  finished. On top of that, validation scored 8 rows at once, and the logits over Qwen's vocabulary of about
+  152k tokens are normalised in fp32.
+- Fix: the training loop releases the gradients as soon as an optimizer step is finished (the update itself is
+  unchanged), and a validation batch is now as large as a training micro-batch: `eval_batch_size: 2` rows for
+  SFT and `eval_batch_size: 1` pair for both DPO configs, which had the same 8 rows per forward pass and would
+  have failed the same way. Validation therefore needs less memory than the training steps that already ran.
+  Validation data, counts, cadence, metrics and checkpoint selection are unchanged; the metrics do not depend
+  on the batch size (`tests/test_eval_memory_and_batch_split.py`). Each evaluation takes somewhat longer.
+- Restart: push the fix to `main`, open the same Kaggle notebook and choose **Save Version -> Save & Run All
+  (Commit)** again. No cell is edited and `01_train_kaggle.ipynb` itself did not change, so it does not have to
+  be uploaded again. The new version clones the pushed code and starts from the beginning (every version
+  runs in a fresh session, so nothing of the failed one is reused).
 
 **If something stops.**
 

@@ -316,7 +316,10 @@ def run_training(config: LoopConfig, model, rows, task, device, resume: bool = F
                 scheduler.step()  # the schedule follows real updates, not skipped ones
             else:
                 state["skipped_steps"] += 1
-                optimizer.zero_grad(set_to_none=True)
+            # The group is finished (applied or dropped), so its gradients are released now instead of at
+            # the start of the next group: evaluation and the resume save below then run without a second,
+            # weight-sized copy of every parameter on the device.
+            optimizer.zero_grad(set_to_none=True)
 
             if used:
                 window["loss"] += group_loss / used

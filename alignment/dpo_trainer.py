@@ -31,7 +31,7 @@ class DPOTaskConfig:
     max_length: int = 512
     max_prompt_length: int | None = 256
     template: str = DEFAULT_TEMPLATE
-    eval_batch_size: int = 4
+    eval_batch_size: int = 1
     single_forward: bool = True
 
 

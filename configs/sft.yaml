@@ -27,7 +27,9 @@ device: cuda:0
 
 eval_at_start: true
 eval_every_steps: 100       # optimizer steps (938 in total for 30k rows)
-eval_batch_size: 8
+eval_batch_size: 2          # rows per validation batch; same as batch_size, so a validation batch never needs more
+                            # GPU memory than a training micro-batch (8 ran out of memory on a T4). The validation
+                            # metrics do not depend on this value.
 log_every_steps: 10
 resume_every_steps: 0       # mid-run resume state (about 6 GB per save) is off by default. On Kaggle enable it with
                             #   --override resume_every_steps=250 resume_dir=/kaggle/temp/resume/sft
