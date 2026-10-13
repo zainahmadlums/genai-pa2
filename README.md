@@ -9,9 +9,9 @@ Implementation of the assignment in `docs/assignment_manual.pdf` (identical to `
 4. **Evaluation**: fixed prompt sets, saved generations, blind randomised A/B pair files, and a resumable judge that
    calls a Kaggle-hosted model.
 
-> **No results are included.** Nothing in this repository was trained, generated or judged yet. Training needs
-> Kaggle T4 x2 GPUs and judging needs Kaggle's model proxy. To run everything, follow
-> **[docs/KAGGLE_RUN_GUIDE.md](docs/KAGGLE_RUN_GUIDE.md)**.
+> **Completed run evidence is included in [runs/](runs/README.md):** executed Kaggle notebooks, training
+> metrics and plots, generations, and judge decisions. Model weights are not included in Git.
+> To reproduce the pipeline, follow **[docs/KAGGLE_RUN_GUIDE.md](docs/KAGGLE_RUN_GUIDE.md)**.
 
 ## Layout
 
@@ -32,6 +32,7 @@ alignment/
 scripts/                     command-line entry points (each has --help)
 configs/                     sft.yaml, dpo_hh.yaml, dpo_ultrafeedback.yaml, persona_lora.yaml
 notebooks/                   01_train_kaggle, 02_generate_kaggle, 03_judge_kaggle
+runs/                        executed Kaggle notebooks and archived run evidence (see runs/README.md)
 eval_sets/                   fixed evaluation prompts (HH 300, AlpacaEval 300 seed 42, persona 40)
 data/persona_lora/           the provided 220 persona preference pairs
 tests/                       public adapter tests (unchanged) + supplementary tests
@@ -51,7 +52,8 @@ PYTHONPATH=. python -m pytest -q tests
 `tests/test_end_to_end_tiny_model.py` builds a random 2-layer Qwen2 model and a character tokenizer in a temporary
 directory and runs the real `train_sft.py`, `train_dpo.py`, `generate.py`, `build_pairs.py`,
 `judge_pairwise_kaggle.py --backend mock`, `plot_metrics.py` and `summarize_results.py` on it. It is skipped when
-`transformers` is not installed. The persona script (TRL + PEFT) has no offline test.
+`transformers` is not installed. `tests/test_persona_lora_tiny.py` also checks the persona script with TRL + PEFT on a tiny model;
+it is skipped when its optional dependencies are missing.
 
 On Windows PowerShell use `$env:PYTHONPATH="."` first, or run `python -m pytest -q tests` from the repository root
 (`pyproject.toml` already puts the root on the test path).
@@ -71,13 +73,17 @@ peft 0.21.2, trl 1.14.1):
   `docs/DATA_PROVENANCE.md`).
 - `--help` of every script and Python syntax of every notebook code cell.
 
-Not verified (needs Kaggle):
+Verified in the saved Kaggle executions (see [runs/README.md](runs/README.md)):
 
-- Any GPU run: fp16 autocast with `GradScaler`, the two-GPU policy/reference placement, memory use, run times and
-  disk use. No model weights were downloaded; no training on real models was done.
-- `scripts/prepare_data.py --task sft` on the full UltraChat download (its converter was checked on 400 real rows).
-- The Kaggle judge backends (`kaggle_benchmarks`, model proxy) and the availability of `google/gemini-3.6-flash`.
-- The notebooks as a whole (cells compile; they were not executed).
+- All three notebooks completed without saved error outputs. The training notebook records **227 passing tests**.
+- SFT, HH DPO, UltraFeedback DPO and persona LoRA training completed on the real models and datasets.
+- Generation and the `kaggle_benchmarks` judge with `google/gemini-3.6-flash` completed. All 680 required
+  pairwise judgments have valid decisions, with no failures or unattempted pairs.
+- On 2026-10-14, the public adapter, batching edge-case and loss-math tests were rerun locally: **35 passed**.
+  This checks all six public function signatures, masks, truncation, numerical losses, gradients and reference freezing.
+
+The private grading tests are unavailable. Completed runs establish execution and recorded results;
+they do not imply that every trained model improved (see the comparison table in `runs/README.md`).
 
 ## Pipeline commands (run on Kaggle; see the run guide for the notebook form)
 
