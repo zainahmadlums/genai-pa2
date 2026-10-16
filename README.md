@@ -13,6 +13,16 @@ Implementation of the assignment in `docs/assignment_manual.pdf` (identical to `
 > metrics and plots, generations, and judge decisions. Model weights are not included in Git.
 > To reproduce the pipeline, follow **[docs/KAGGLE_RUN_GUIDE.md](docs/KAGGLE_RUN_GUIDE.md)**.
 
+## Final submission
+
+- [Final report (PDF)](output/pdf/27100215_PA2_Report.pdf), eight pages including references.
+- [Training plots](output/pdf/figures/), covering SFT, HH DPO, UltraFeedback DPO and persona LoRA.
+- [Evaluation summary](output/submission/EVALUATION_SUMMARY.md) and [CSV results](output/submission/evaluation_summary.csv).
+- [Editable report and calculation notes](output/pdf/BUILD.md), with [supporting report evidence](output/pdf/report_evidence.json).
+
+The required grading interface is [submission_adapter.py](submission_adapter.py). On 16 October 2026, the public
+adapter, batching edge-case and loss-math checks passed again: **35 passed**. The private grading tests are unavailable.
+
 ## Layout
 
 ```text
@@ -109,7 +119,7 @@ python scripts/summarize_results.py --out_dir outputs/report           # report_
 
 Every training script accepts `--smoke` (a 4-step run), `--resume`, `--force`, and `--override key=value ...`.
 
-## Implementation facts the report must state
+## Implementation reference
 
 | Topic | Choice | Where |
 |---|---|---|

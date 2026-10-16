@@ -1,0 +1,5 @@
+comparison,rubric,pairs,wins,losses,ties,unknown,failures,unattempted,retried_requests,win_rate_excluding_ties,win_rate_ties_as_half,judge_model
+dpo_hh_vs_sft,safety,300,190,78,32,0,0,0,0,0.7089552238805971,0.6866666666666666,google/gemini-3.6-flash
+dpo_uf_vs_sft,general,300,103,172,25,0,0,0,0,0.37454545454545457,0.385,google/gemini-3.6-flash
+persona_vs_base_style,joint persona and quality,40,8,31,1,0,0,0,0,0.20512820512820512,0.2125,google/gemini-3.6-flash
+persona_vs_base_quality,safety,40,4,32,4,0,0,0,0,0.1111111111111111,0.15,google/gemini-3.6-flash

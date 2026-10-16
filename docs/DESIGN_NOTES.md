@@ -84,8 +84,8 @@ from, or adds to, the guide configuration in the manual; copy those into the rep
 - The reference is loaded in **fp32 and run under the same fp16 autocast as the policy** (`reference_dtype: fp32`).
   The manual allows an fp16 reference; fp32 weights were chosen because cuda:1 has spare memory and the two models
   then go through the same arithmetic, which keeps the step-0 rewards tied. `reference_dtype: fp16` halves the
-  reference's memory if needed. Whether the step-0 tie is exact on real GPUs has not been observed yet: read
-  `val_tie_fraction` at step 0 in `metrics.jsonl` and report it.
+  reference's memory if needed. The completed Kaggle runs record exact step-0 ties in both Qwen DPO runs:
+  reward accuracy and margin are zero, and `val_tie_fraction` is 1.0.
 - Chosen and rejected rows go through the model in one forward pass (`single_forward: true`); a test checks that
   this equals two separate passes.
 - Reference log-probabilities of the validation set are computed once and cached, since the reference never changes.
@@ -97,18 +97,18 @@ from, or adds to, the guide configuration in the manual; copy those into the rep
 
 | Setting | Value | Reason |
 |---|---|---|
-| Rank / alpha | r = 16, alpha = 32 | A style shift needs little capacity; r = 16 trains about 8.7M of 362M parameters (about 2.4%). alpha = 2r is the usual scaling. |
+| Rank / alpha | r = 16, alpha = 32 | Rank 16 limits adaptation capacity. The completed run trains 8,683,520 of 370,504,640 total parameters (2.34%); alpha is twice the rank. |
 | Target modules | `q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj` | Persona is mostly word choice and tone, which the MLP projections influence as well as attention. |
 | Dropout | 0.05 | Only 200 training pairs; light regularisation. |
-| Learning rate | 1e-4, cosine, 10% warmup | LoRA adapters start at zero and need a much larger rate than the 1e-6 used for full fine-tuning. |
+| Learning rate | 1e-4, cosine, 10% warmup | An initial rate for adapting newly initialized low-rank parameters while the base stays frozen; this was not selected through a sweep. |
 | Batch | 4 x 2 accumulation = 8 | 25 optimizer steps per epoch on 200 pairs. |
 | Epochs | 3 (75 steps) | Enough passes for 200 pairs; the adapter with the lowest validation DPO loss is kept. |
 | Beta | 0.1 | Same as the from-scratch runs. |
 | Reference | base model with the adapter disabled | TRL's behaviour when `peft_config` is given and no `ref_model`. |
 
-These are starting values chosen from the model architecture and data size, not tuned results. The parameter count
-is an estimate from the layer shapes; the script prints the real count. If the smoke outputs show the persona is too
-weak or the model stops being useful, change rank, learning rate or epochs and report the comparison.
+These were starting values chosen from the model architecture and data size, not tuned results. The parameter count
+above is from the completed run. The submitted run used these settings throughout; its weak generated responses
+and strong validation-pair fit are discussed in the final report.
 The script pins `CUDA_VISIBLE_DEVICES=0` so the Hugging Face Trainer does not wrap the model in `DataParallel`, and
 sets `fp16=True, bf16=False` because TRL 1.x would otherwise default to bf16.
 
@@ -175,7 +175,8 @@ clipping, beta, context length, epochs).
   counting ties as half, a two-sided sign test, A/B position statistics and per-category tables.
 - Judge backends: `kaggle_benchmarks` (`kbench.llms[name]` or `kbench.kaggle.load_model(name)`, `llm.prompt(text)`
   inside `kbench.chats.new(..., orphan=True)`) and an OpenAI-compatible fallback on `$MODEL_PROXY_URL/openapi`.
-  Both were written from the `kaggle-benchmarks` 0.6.1 source and **have not been run against the real service**.
+  The `kaggle_benchmarks` backend completed all 680 required judgments in the saved Kaggle execution.
+  The OpenAI-compatible fallback was not used in that execution.
 
 ## 8. Disk budget on Kaggle (`/kaggle/working`, 20 GB)
 

@@ -38,11 +38,13 @@ Wins and losses below are from the candidate's perspective. Win rate excludes ti
 |---|---:|---:|---:|---:|---:|
 | HH DPO vs SFT (safety) | 300 | 190 | 78 | 32 | 70.90% |
 | UltraFeedback DPO vs SFT (general) | 300 | 103 | 172 | 25 | 37.45% |
-| Persona LoRA vs base (style) | 40 | 8 | 31 | 1 | 20.51% |
+| Persona LoRA vs base (joint persona and quality) | 40 | 8 | 31 | 1 | 20.51% |
 | Persona LoRA vs base (quality) | 40 | 4 | 32 | 4 | 11.11% |
 
 All four comparisons are complete, with zero unknown decisions, failures or unattempted pairs.
 These are results on the saved evaluation sets under the recorded judging protocol, not claims of universal improvement.
+The archived comparison named `persona_vs_base_style` uses a joint rubric: persona fidelity together with
+helpfulness, correctness and safety. Its score does not measure style independently of response quality.
 
 ## Adapter verification
 
@@ -52,7 +54,7 @@ From the repository root:
 python -m pytest -q tests/test_public_adapter_smoke.py tests/test_batching_edge_cases.py tests/test_losses_math.py
 ```
 
-On 2026-10-14 this returned **35 passed**. It checks the six required `submission_adapter.py` interfaces,
+On 2026-10-14 and again on 2026-10-16 this returned **35 passed**. It checks the six required `submission_adapter.py` interfaces,
 response-only masking and log-probabilities, padding and truncation, SFT/DPO loss arithmetic, policy gradients,
 and frozen reference-model behavior. No adapter changes were required. The private grading tests are unavailable.
 
